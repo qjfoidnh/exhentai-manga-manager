@@ -6,6 +6,9 @@ import 'element-plus/theme-chalk/dark/css-vars.css'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
 import _ from 'lodash'
+try {
+  require('electron-reloader')(module,{});
+} catch (_) {}
 
 const app = createApp(App)
 

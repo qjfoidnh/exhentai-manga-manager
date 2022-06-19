@@ -46,7 +46,7 @@
             <el-icon :size="30" :color="book.mark ? '#E6A23C' : '#666666'" class="book-card-star" @click="switchMark(book)"><StarFilled /></el-icon>
             <el-button-group class="outer-read-button-group">
               <el-button type="success" size="small" class="outer-read-button" plain @click="bookDetail = book; openLocalBook()">阅</el-button>
-              <el-button type="success" size="small" class="outer-read-button" plain @click="bookDetail = book; viewManga()">读</el-button>
+              <!-- <el-button type="success" size="small" class="outer-read-button" plain @click="bookDetail = book; viewManga()">读</el-button> -->
             </el-button-group>
             <el-tag
               class="book-status-tag"
@@ -139,6 +139,7 @@
           <el-row class="book-detail-function">
             <el-button type="primary" plain @click="getBookInfo(bookDetail, 'e-hentai')">获取元数据</el-button>
             <el-button type="primary" plain @click="getBookInfo(bookDetail, 'exhentai')">获取EX元数据</el-button>
+            <el-button type="primary" plain @click="getBookInfo(bookDetail, 'exsearch')">获取关键字数据</el-button>
           </el-row>
           <el-row class="book-detail-function">
             <el-button type="primary" plain @click="showFile(bookDetail.filepath)">打开漫画文件所在目录</el-button>
@@ -275,6 +276,11 @@
             <el-button class="function-button" type="primary" plain @click="getBookListMetadata('exhentai')">批量获取EX元数据</el-button>
           </div>
         </el-col>
+        <el-col :span="6">
+          <div class="setting-line">
+            <el-button class="function-button" type="primary" plain @click="getBookListMetadata('exsearch')">批量获取EX关键字</el-button>
+          </div>
+        </el-col>
         <el-col :span="4">
           <div class="setting-line">
             <el-button class="function-button" type="primary" plain @click="exportDatabase">导出元数据</el-button>
@@ -384,7 +390,7 @@
         <el-icon :size="30" :color="book.mark ? '#E6A23C' : '#666666'" class="book-card-star" @click="switchMark(book)"><StarFilled /></el-icon>
         <el-button-group class="outer-read-button-group">
           <el-button type="success" size="small" class="outer-read-button" plain @click="bookDetail = book; openLocalBook()">阅</el-button>
-          <el-button type="success" size="small" class="outer-read-button" plain @click="bookDetail = book; viewManga()">读</el-button>
+          <!-- <el-button type="success" size="small" class="outer-read-button" plain @click="bookDetail = book; viewManga()">读</el-button> -->
         </el-button-group>
         <el-tag
           class="book-status-tag"
@@ -722,7 +728,7 @@ export default defineComponent({
               }
             }
           })
-        } else {
+        } else if (server == 'exhentai') {
           ipcRenderer['get-ex-webpage']({
             url: `https://exhentai.org/?f_shash=${book.hash.toUpperCase()}&fs_similar=1&fs_exp=on`,
             cookie: `igneous=${this.setting.igneous}; ipb_pass_hash=${this.setting.ipb_pass_hash}; ipb_member_id=${this.setting.ipb_member_id}`
@@ -733,6 +739,33 @@ export default defineComponent({
               getTag(book, bookUrl, book.hash)
             } catch (e) {
               console.log(e)
+              if (res.includes('Your IP address has been')) {
+                book.status = 'non-tag'
+                this.printMessage('error', 'Your IP address has been temporarily banned')
+                this.saveBookList()
+                this.serviceAvailable = false
+              } else {
+                book.status = 'tag-failed'
+                this.printMessage('error', 'Get tag failed')
+                this.saveBookList()
+              }
+            }
+          })
+        } else {
+          let title = book["title"]
+          let reg = /\[[^\[]+?\]([^\[]+)/g
+          if (title.match(reg).length > 0) {
+            title = title.match(reg)[0]
+          }
+          ipcRenderer['get-ex-webpage']({
+            url: `https://exhentai.org/?f_search=${encodeURI(title)}`,
+            cookie: `igneous=${this.setting.igneous}; ipb_pass_hash=${this.setting.ipb_pass_hash}; ipb_member_id=${this.setting.ipb_member_id}`
+          })
+          .then(res=>{
+            try {
+              let bookUrl = new DOMParser().parseFromString(res, 'text/html').querySelector('.gl3c.glname>a').getAttribute('href')
+              getTag(book, bookUrl, book.hash)
+            } catch (e) {
               if (res.includes('Your IP address has been')) {
                 book.status = 'non-tag'
                 this.printMessage('error', 'Your IP address has been temporarily banned')
@@ -1184,7 +1217,7 @@ body
 .outer-read-button-group
   margin: 0 8px
 .outer-read-button
-  padding: 0 2px
+  padding: 1 0px
 .book-status-tag
   padding: 0 2px
   margin-right: 8px

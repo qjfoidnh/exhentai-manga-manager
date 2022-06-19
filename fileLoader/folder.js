@@ -1,5 +1,6 @@
 const path = require('path')
 const glob = require('glob')
+const fs = require('fs')
 const { promisify } = require('util')
 const { nanoid } = require('nanoid')
 const _ = require('lodash')
@@ -27,6 +28,11 @@ let solveBookTypeFolder = async (folderpath, TEMP_PATH, COVER_PATH)=>{
     targetFilePath = list[0]
   }
   let tempCoverPath = list[0]
+  let fileMeta = fs.statSync(tempCoverPath)
+  console.log(fileMeta)
+  if (fileMeta.size < 20000) {
+    tempCoverPath = list[1]
+  }
   let coverPath = path.join(COVER_PATH, nanoid() + path.extname(list[0]))
   return {targetFilePath, tempCoverPath, coverPath}
 }

@@ -54,6 +54,7 @@
     "axios": "^0.26.1",
     "electron": "^18.0.3",
     "electron-builder": "^22.5.1",
+    "electron-reloader": "^1.2.3",
     "element-plus": "^2.1.8",
     "he": "^1.2.0",
     "stylus": "^0.57.0",

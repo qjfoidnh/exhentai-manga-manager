@@ -9,6 +9,7 @@ const { spawn } = require('child_process')
 const { createHash } = require('crypto')
 const superagent = require('superagent')
 require('superagent-proxy')(superagent)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const {getZipFilelist, solveBookTypeZip, getImageListFromZip} = require('./fileLoader/zip')
 const {getFolderlist, solveBookTypeFolder, getImageListFromFolder} = require('./fileLoader/folder')
@@ -74,7 +75,7 @@ function createWindow () {
   } else {
     win.loadURL('http://localhost:3000')
   }
-  win.setMenuBarVisibility(false)
+  win.setMenuBarVisibility(true)
   win.webContents.on('did-finish-load', ()=>{
     let name = "EH漫画管理"
     let version = require('./package.json').version
