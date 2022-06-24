@@ -753,9 +753,15 @@ export default defineComponent({
           })
         } else {
           let title = book["title"]
-          let reg = /\[[^\[]+?\]([^\[]+)/g
-          if (title.match(reg).length > 0) {
-            title = title.match(reg)[0]
+          // let reg = /\[[^\[]+?\]([^\[]+)/g
+          // if (title.match(reg).length > 0) {
+          //   title = title.match(reg)[0]
+          // }
+          let matchTitle = /\[[^[]+?]([^[]+)/.exec(title)
+          if (matchTitle) {
+            title = matchTitle[1]
+          } else {
+            title = book.title
           }
           ipcRenderer['get-ex-webpage']({
             url: `https://exhentai.org/?f_search=${encodeURI(title)}`,
